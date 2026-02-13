@@ -1,0 +1,19 @@
+#!/bin/bash
+# Pre-commit hook: scan staged files for potential secrets before allowing commit
+
+SECRETS_PATTERN='(password|secret|api_key|apikey|token|bearer|private_key|connection_string|client_secret|access_key|aws_secret|AKIA[0-9A-Z]{16}|-----BEGIN (RSA |EC )?PRIVATE KEY)'
+
+# Check staged files only
+MATCHES=$(git diff --cached --name-only | xargs grep -ilE "$SECRETS_PATTERN" 2>/dev/null)
+
+if [ -n "$MATCHES" ]; then
+    echo "⚠️  POTENTIAL SECRETS DETECTED in staged files:"
+    echo "$MATCHES"
+    echo ""
+    echo "Review these files before committing."
+    echo "To bypass this check (if safe): git commit --no-verify"
+    exit 1
+fi
+
+echo "✓ No secrets detected in staged files."
+exit 0
