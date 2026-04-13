@@ -7,6 +7,7 @@ outer side panels a little more so two stackers can fit comfortably within a
 """
 import re
 import zipfile
+from typing import Match, Tuple
 
 INPUT = "Bowl_Stacker_John Lewis bowls.3mf"
 OUTPUT = "Bowl_stacker_JL_v3.3mf"
@@ -22,7 +23,7 @@ COMPRESS_FACTOR = (TARGET_OUTER_X - INNER_THRESHOLD) / (CURRENT_OUTER_X - INNER_
 VERTEX_PATTERN = re.compile(r'<vertex x="([^"]+)" y="([^"]+)" z="([^"]+)"/>')
 
 
-def transform_vertex(match: re.Match[str]) -> str:
+def transform_vertex(match: Match[str]) -> str:
     x = float(match.group(1))
     y_str = match.group(2)
     z_str = match.group(3)
@@ -35,7 +36,7 @@ def transform_vertex(match: re.Match[str]) -> str:
     return f'<vertex x="{new_x:.7f}" y="{y_str}" z="{z_str}"/>'
 
 
-def get_bounds(xml_str: str) -> tuple[tuple[float, float], tuple[float, float], tuple[float, float]]:
+def get_bounds(xml_str: str) -> Tuple[Tuple[float, float], Tuple[float, float], Tuple[float, float]]:
     xs, ys, zs = [], [], []
     for match in VERTEX_PATTERN.finditer(xml_str):
         xs.append(float(match.group(1)))
@@ -53,7 +54,7 @@ def main() -> None:
     modified_xml = VERTEX_PATTERN.sub(transform_vertex, obj_xml)
     files[OBJ_KEY] = modified_xml.encode("utf-8")
 
-    (xb, _yb, zb) = get_bounds(modified_xml)
+    (xb, _, zb) = get_bounds(modified_xml)
     width_mm = (xb[1] - xb[0]) * BUILD_SCALE_XY
     depth_mm = (zb[1] - zb[0]) * BUILD_SCALE_XY
 
