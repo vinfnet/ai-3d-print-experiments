@@ -11,6 +11,7 @@ A collection of 3D-printable models generated entirely by AI. Each model is crea
 | Azure Cloud | `generate_cloud_ms_logo.py` | `cloud_microsoft_logo.stl` | A puffy cloud with Microsoft logo, padlock, and "Azure Confidential Computing" nameplate (130mm wide) |
 | iPhone MacBook Mount | `generate_iphone_macbook_mount.py` | `iphone_macbook_mount.stl` | Clips iPhone 16 Pro (in Apple Silicone Case, landscape) onto MacBook Pro 14" screen top edge with webcam clearance (151mm wide) |
 | Egg Beater Pedal Adapter | `generate_eggbeater_adapter.py` | `eggbeater_adapter.stl` | Platform adapter for Crank Brothers Egg Beater pedals — clips in like a cleat, provides a flat 95×75mm pedal surface for normal shoes. Print twice (one per pedal). (95mm wide, 19mm tall) |
+| Bowl Stacker (JL v3 slim) | `create_bowl_stacker_v3.py` | `Bowl_stacker_JL_v3.3mf` | Slimmed bowl stacker variant targeting ~118mm width so two units fit on a 250×280mm shelf without overhang. |
 
 ## How It Works
 
