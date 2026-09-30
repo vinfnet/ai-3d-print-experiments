@@ -53,25 +53,25 @@ def load_stl(filename):
     return np.array(m.vectors, dtype=float)
 
 
-def cylinder_x(y, z, radius, x0, x1, n=48):
-    """Cylinder with its axis along X — stands in for a can."""
+def cylinder_z(x, y, radius, z0, z1, n=48):
+    """Cylinder with its axis along Z — stands in for an upright can."""
     tris = []
-    ring = [(y + radius * np.cos(a), z + radius * np.sin(a))
+    ring = [(x + radius * np.cos(a), y + radius * np.sin(a))
             for a in np.linspace(0, 2 * np.pi, n, endpoint=False)]
     for i in range(n):
         j = (i + 1) % n
         a, b = ring[i], ring[j]
-        p0 = np.array([x0, a[0], a[1]])
-        p1 = np.array([x0, b[0], b[1]])
-        p2 = np.array([x1, b[0], b[1]])
-        p3 = np.array([x1, a[0], a[1]])
+        p0 = np.array([a[0], a[1], z0])
+        p1 = np.array([b[0], b[1], z0])
+        p2 = np.array([b[0], b[1], z1])
+        p3 = np.array([a[0], a[1], z1])
         tris += [[p0, p1, p2], [p0, p2, p3]]
-    for x, flip in ((x0, True), (x1, False)):
+    for z, flip in ((z0, True), (z1, False)):
         c = np.array([x, y, z])
         for i in range(n):
             j = (i + 1) % n
-            p = np.array([x, ring[i][0], ring[i][1]])
-            q = np.array([x, ring[j][0], ring[j][1]])
+            p = np.array([ring[i][0], ring[i][1], z])
+            q = np.array([ring[j][0], ring[j][1], z])
             tris.append([c, q, p] if flip else [c, p, q])
     return tris_to_array(tris)
 
@@ -194,9 +194,9 @@ def scene_assembly():
     cans = []
     r = rack.CAN_DIA / 2
     for i in range(rack.N_BAYS):
-        y = i * rack.BAY + rack.RIDGE_LEN + r
-        cans.append(cylinder_x(y, rack.FLOOR_T + r, r,
-                               -rack.CAN_LEN / 2, rack.CAN_LEN / 2))
+        y = i * rack.BAY + rack.RIDGE_T + r
+        cans.append(cylinder_z(0.0, y, r,
+                               rack.Z_FLOOR, rack.Z_FLOOR + rack.CAN_H))
     cans = np.concatenate(cans)
 
     shelf = rack.box(-190.0, 190.0, 0.0, rack.SHELF_DEPTH,
@@ -209,18 +209,22 @@ def scene_assembly():
 
 
 def scene_parts():
-    bay = load_stl("fridge_can_rack_bay.stl")
-    clip = load_stl("fridge_can_rack_shelf_clip.stl")
-    stop = load_stl("fridge_can_rack_end_stop.stl")
+    parts = [
+        ("fridge_can_rack_bay.stl", RACK_COLOUR),
+        ("fridge_can_rack_bay_front.stl", (70, 105, 170)),
+        ("fridge_can_rack_shelf_clip_right.stl", (90, 170, 120)),
+        ("fridge_can_rack_end_stop.stl", (200, 160, 70)),
+    ]
 
-    def place(tris, dy):
-        out = tris.copy()
-        out[:, :, 1] += dy - (tris[:, :, 1].min() + tris[:, :, 1].max()) / 2
-        return out
-
-    return [(place(bay, 0.0), RACK_COLOUR, 1.0),
-            (place(clip, 170.0), (90, 170, 120), 1.0),
-            (place(stop, 300.0), (200, 160, 70), 1.0)]
+    out = []
+    dy = 0.0
+    for filename, colour in parts:
+        tris = load_stl(filename).copy()
+        span = tris[:, :, 1].max() - tris[:, :, 1].min()
+        tris[:, :, 1] += dy - tris[:, :, 1].min()
+        out.append((tris, colour, 1.0))
+        dy += span + 50.0
+    return out
 
 
 def main():

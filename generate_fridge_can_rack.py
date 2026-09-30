@@ -2,20 +2,22 @@
 Generate STL files for a hanging fridge can rack.
 
 The rack clips onto the front edge of a typical glass fridge shelf and hangs
-underneath it, holding a single row of 330ml drink cans lying on their side,
-axis left-right, so the row runs front-to-back into the fridge.
+underneath it, holding a single row of 330ml drink cans standing UPRIGHT.
+The row runs front to back into the fridge, so the rack is only one can wide.
 
-A 380mm deep shelf fits FIVE 330ml cans (Ø66mm each, 72mm bay pitch → 364mm).
+A 380mm deep shelf fits FIVE 330ml cans (Ø66.3mm each, 70mm bay pitch).
 
-Printable parts (all fit a 220 x 220mm bed):
-  fridge_can_rack_bay.stl         x5  — one can bay, 72mm long
-  fridge_can_rack_shelf_clip.stl  x2  — wraps the glass front edge
-  fridge_can_rack_end_stop.stl    x1  — rear stop wall
+Printable parts (all fit a 220 x 220mm bed, none need supports):
+  fridge_can_rack_bay.stl               x4  — one can bay, 70mm long
+  fridge_can_rack_bay_front.stl         x1  — front bay, with retaining lip
+  fridge_can_rack_shelf_clip_right.stl  x1  — wraps the glass front edge
+  fridge_can_rack_shelf_clip_left.stl   x1  — mirror image of the above
+  fridge_can_rack_end_stop.stl          x1  — rear wall
 
-  fridge_can_rack_assembly.stl        — preview of the assembled rack
-                                        (visualisation only, do not print)
+  fridge_can_rack_assembly.stl              — preview of the assembled rack
+                                              (visualisation only, DO NOT print)
 
-All parts are exported already rotated into their recommended print
+Every part is exported already rotated into its recommended print
 orientation, with Z-min = 0.
 """
 
@@ -26,52 +28,63 @@ from stl import mesh
 #  Design parameters (millimetres)
 # ═══════════════════════════════════════════════════════════════════════
 
-CAN_DIA = 66.3          # 330ml sleek/standard can diameter
-CAN_LEN = 115.0         # 330ml can height (lying down → length across fridge)
+CAN_DIA = 66.3          # 330ml can body diameter
+CAN_H = 115.0           # 330ml can height (standing upright)
 
 SHELF_DEPTH = 380.0     # glass shelf depth
 GLASS_T = 6.0           # glass shelf thickness — MEASURE YOURS AND EDIT
 
 N_BAYS = 5              # cans in the row
-BAY = 72.0              # bay pitch along the fridge depth
+BAY = 70.0              # bay pitch along the fridge depth
 
-W_IN = 121.0            # clear inner width (can length + play)
+W_IN = 72.0             # clear inner width (can diameter + play)
 WALL = 3.0              # side wall thickness
-X_IN = W_IN / 2         # 60.5 — inner face of side wall
-X_OUT = X_IN + WALL     # 63.5 — outer face of side wall
+X_IN = W_IN / 2         # 36.0 — inner face of side wall
+X_OUT = X_IN + WALL     # 39.0 — outer face of side wall
 
 FLOOR_T = 3.0           # floor plate thickness
-WALL_H = 71.0           # floor top → glass underside
-Z_FLOOR = FLOOR_T                    # 3.0  — top of floor (cans roll on this)
-Z_GLASS_BOT = Z_FLOOR + WALL_H       # 74.0 — glass underside / top of walls
-Z_GLASS_TOP = Z_GLASS_BOT + GLASS_T  # 80.0 — glass top surface
+Z_FLOOR = FLOOR_T                    # 3.0   — cans stand on this
+WALL_H = 147.0                       # floor top → glass underside
+Z_GLASS_BOT = Z_FLOOR + WALL_H       # 150.0 — glass underside
+Z_GLASS_TOP = Z_GLASS_BOT + GLASS_T  # 156.0 — glass top surface
 
-RIDGE_H = 6.0           # ramp between bays that stops cans rolling
-RIDGE_LEN = 8.0
+RIDGE_T = 3.0           # floor ridge that stops cans sliding fore/aft
+RIDGE_H = 4.0
+
+LIP_H = 20.0            # front retaining lip, above the floor
+LIP_T = 3.0
+
+# The side walls are open frames: two horizontal bands joined by posts.
+# This saves a lot of filament and still makes a stiff deep beam.
+BAND_LOW = (Z_FLOOR, 38.0)
+BAND_HIGH = (132.0, Z_GLASS_BOT)
+BANDS = [BAND_LOW, BAND_HIGH]
+POST_Y0, POST_Y1 = 30.0, 40.0        # extra mid-bay post
 
 LAP = 18.0              # lap-joint overlap length
-X_LAP_MID = X_IN + WALL / 2     # 62.0 — split plane of the lapped wall
+X_LAP_MID = X_IN + WALL / 2     # 37.5 — split plane of the lapped wall
 LAP_GAP = 0.2                   # sliding clearance on the lap joint
-X_TAB_IN = X_LAP_MID + LAP_GAP  # 62.2 — inner face of the outer lap plate
+X_TAB_IN = X_LAP_MID + LAP_GAP  # 37.7 — inner face of the outer lap plate
 
-BUMP_Y0, BUMP_Y1 = 6.0, 14.0    # snap bump on the inner lap plate
-BUMP_RAMP = 3.0
-BUMP_Z0, BUMP_Z1 = 32.0, 42.0
-BUMP_X1 = X_OUT - 0.1           # 63.4 — bump tip
+# One snap bump per band: (z_low, z_high)
+BUMPS = [(14.0, 24.0), (137.0, 145.0)]
+BUMP_X1 = X_OUT - 0.1           # 38.9 — bump tip
+BUMP_Y0, BUMP_Y1 = 6.0, 14.0    # along the lap
+BUMP_RAMP = 3.0                 # lead-in ramp on the insertion side
 WIN_Y0, WIN_Y1 = 5.0, 15.0      # matching window in the outer lap plate
-WIN_Z0, WIN_Z1 = 31.0, 43.0
+WIN_Z_MARGIN = 1.0
 
-CLIP_FLANGE_LEN = 140.0   # how far the clip lies back on top of the glass
-CLIP_FLANGE_X0 = 40.0     # inner edge of the top flange
-CLIP_T = 3.0
 CLIP_NOSE = 9.0           # thickness of the wrap in front of the glass edge
-CLIP_RISER_X0 = 59.0      # keeps the loading mouth 118mm clear
-CLIP_RISER_X1 = X_OUT + 1.0
+CLIP_NOSE_X0 = 20.0       # inner edge of the nose block
+CLIP_NOSE_Z0 = 142.0      # above the can's loading height — keeps the mouth clear
+CLIP_FLANGE_LEN = 140.0   # how far the clip lies back on top of the glass
+CLIP_FLANGE_X0 = 14.0     # inner edge of the top flange
+CLIP_T = 3.0
 
-STOP_H = 40.0             # rear stop wall height
-STOP_T = 4.0
+STOP_T = 4.0              # rear wall thickness
 
-RACK_LEN = N_BAYS * BAY + STOP_T   # under-shelf footprint, front to back
+# Front-to-back footprint under the shelf: lip → back of the rear lap
+RACK_DEPTH = LIP_T + N_BAYS * BAY + LAP
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -147,113 +160,134 @@ def rotate(tris, matrix):
     return [[m @ v for v in t] for t in tris]
 
 
-ROT_LAY_ON_SIDE = [[0, 0, 1],   # (x, y, z) → (z, y, -x): outer side face down
-                   [0, 1, 0],
-                   [-1, 0, 0]]
+# (x, y, z) → (x, -z, y): rolls the part forward so the -Y face is on the bed
+ROT_FACE_DOWN = [[1, 0, 0],
+                 [0, 0, -1],
+                 [0, 1, 0]]
 
-ROT_LAY_ON_BACK = [[1, 0, 0],   # (x, y, z) → (x, z, -y): rear face down
-                   [0, 0, 1],
-                   [0, -1, 0]]
+# (x, y, z) → (z, y, -x): puts the +X face on the bed
+ROT_ON_RIGHT_FACE = [[0, 0, 1],
+                     [0, 1, 0],
+                     [-1, 0, 0]]
+
+# (x, y, z) → (-z, y, x): puts the -X face on the bed
+ROT_ON_LEFT_FACE = [[0, 0, -1],
+                    [0, 1, 0],
+                    [1, 0, 0]]
 
 
 # ═══════════════════════════════════════════════════════════════════════
-#  Shared wall features
+#  Lap joints — how the modules chain together
 # ═══════════════════════════════════════════════════════════════════════
 
-def inner_lap_plate(y0):
-    """Inner half of the lapped wall + snap bump (the 'male' half of a joint).
+def _bumps_in(bands):
+    return [b for b in BUMPS
+            if any(z0 <= b[0] and b[1] <= z1 for z0, z1 in bands)]
 
-    Occupies y0 … y0+LAP on the +X side.
+
+def inner_lap_plate(y0, bands=BANDS):
+    """Inner (male) half of a lapped wall, with snap bumps.
+
+    Occupies y0 … y0+LAP on the +X side. It slides forward (-Y) into the
+    matching outer plate, so the bump ramps up from its y0 edge.
     """
-    tris = box(X_IN, X_LAP_MID, y0, y0 + LAP, Z_FLOOR, Z_GLASS_BOT)
+    tris = []
+    for bz0, bz1 in bands:
+        tris += box(X_IN, X_LAP_MID, y0, y0 + LAP, bz0, bz1)
 
-    # Snap bump with a lead-in ramp on the entry (far) side
-    tris += box(X_LAP_MID, BUMP_X1, y0 + BUMP_Y0, y0 + BUMP_Y1 - BUMP_RAMP,
-                BUMP_Z0, BUMP_Z1)
-    tris += prism([(X_LAP_MID, y0 + BUMP_Y1),
-                   (X_LAP_MID, y0 + BUMP_Y1 - BUMP_RAMP),
-                   (BUMP_X1, y0 + BUMP_Y1 - BUMP_RAMP)],
-                  'z', BUMP_Z0, BUMP_Z1)
+    for pz0, pz1 in _bumps_in(bands):
+        tris += prism([(X_LAP_MID, y0 + BUMP_Y0),
+                       (BUMP_X1, y0 + BUMP_Y0 + BUMP_RAMP),
+                       (X_LAP_MID, y0 + BUMP_Y0 + BUMP_RAMP)],
+                      'z', pz0, pz1)
+        tris += box(X_LAP_MID, BUMP_X1,
+                    y0 + BUMP_Y0 + BUMP_RAMP, y0 + BUMP_Y1, pz0, pz1)
     return tris
 
 
-def outer_lap_plate(y0):
-    """Outer half of the lapped wall, pierced by the snap window
-    (the 'female' half of a joint). Occupies y0 … y0+LAP on the +X side."""
+def outer_lap_plate(y0, bands=BANDS):
+    """Outer (female) half of a lapped wall, pierced by the snap windows.
+
+    Occupies y0 … y0+LAP on the +X side."""
     x0, x1 = X_TAB_IN, X_OUT
     tris = []
-    tris += box(x0, x1, y0, y0 + LAP, Z_FLOOR, WIN_Z0)
-    tris += box(x0, x1, y0, y0 + LAP, WIN_Z1, Z_GLASS_BOT)
-    tris += box(x0, x1, y0, y0 + WIN_Y0, WIN_Z0, WIN_Z1)
-    tris += box(x0, x1, y0 + WIN_Y1, y0 + LAP, WIN_Z0, WIN_Z1)
+    for bz0, bz1 in bands:
+        wins = [b for b in BUMPS if bz0 <= b[0] and b[1] <= bz1]
+        if not wins:
+            tris += box(x0, x1, y0, y0 + LAP, bz0, bz1)
+            continue
+        pz0, pz1 = wins[0]
+        wz0, wz1 = pz0 - WIN_Z_MARGIN, pz1 + WIN_Z_MARGIN
+        tris += box(x0, x1, y0, y0 + LAP, bz0, wz0)
+        tris += box(x0, x1, y0, y0 + LAP, wz1, bz1)
+        tris += box(x0, x1, y0, y0 + WIN_Y0, wz0, wz1)
+        tris += box(x0, x1, y0 + WIN_Y1, y0 + LAP, wz0, wz1)
     return tris
 
 
 # ═══════════════════════════════════════════════════════════════════════
-#  Part 1 — can bay module (print x5)
+#  Part 1/2 — can bay module (print x4, plus x1 of the front variant)
 # ═══════════════════════════════════════════════════════════════════════
 
-def bay_module():
-    tris = []
+def bay_module(front=False):
+    """One upright-can bay. `front=True` adds the front retaining lip."""
+    y_floor0 = -LIP_T if front else 0.0
 
-    # Floor
-    tris += box(-X_OUT, X_OUT, 0.0, BAY, 0.0, FLOOR_T)
+    tris = box(-X_OUT, X_OUT, y_floor0, BAY, 0.0, FLOOR_T)
 
-    # Anti-roll ridge at the front of the bay: ramps up from the floor so a
-    # can can be pushed in from the front, then drops vertically into the bay.
-    tris += prism([(0.0, Z_FLOOR), (RIDGE_LEN, Z_FLOOR),
-                   (RIDGE_LEN, Z_FLOOR + RIDGE_H)], 'x', -X_IN, X_IN)
+    # Floor ridge — locates the can and stops it sliding front to back
+    tris += box(-X_IN, X_IN, 0.0, RIDGE_T, Z_FLOOR, Z_FLOOR + RIDGE_H)
 
     side = []
-    # Main wall (full thickness) between the two lap zones
-    side += box(X_IN, X_OUT, LAP, BAY, Z_FLOOR, Z_GLASS_BOT)
-    # Front of the bay: inner half only, with the snap bump
-    side += inner_lap_plate(0.0)
-    # Rear of the bay: outer half only, overhanging into the next module
-    side += outer_lap_plate(BAY)
+    for bz0, bz1 in BANDS:                       # horizontal bands
+        side += box(X_IN, X_OUT, LAP, BAY, bz0, bz1)
+    side += inner_lap_plate(0.0)                 # front: male half
+    side += outer_lap_plate(BAY)                 # rear: female half
+    # Vertical posts joining the two bands
+    side += box(X_IN, X_OUT, 0.0, LAP, BAND_LOW[1], BAND_HIGH[0])
+    side += box(X_IN, X_OUT, POST_Y0, POST_Y1, BAND_LOW[1], BAND_HIGH[0])
 
     tris += side
     tris += mirror_x(side)
+
+    if front:
+        tris += box(-X_OUT, X_OUT, -LIP_T, 0.0, 0.0, Z_FLOOR + LIP_H)
+
     return tris
 
 
 # ═══════════════════════════════════════════════════════════════════════
-#  Part 2 — shelf clip (print x2)
+#  Part 3/4 — shelf clip (print one of each hand)
 # ═══════════════════════════════════════════════════════════════════════
 
 def shelf_clip():
-    """Wraps the glass front edge and laps onto the front bay's side wall."""
-    tris = []
+    """Right-hand clip: wraps the glass front edge, laps onto the front bay.
 
-    # Lap plate onto the front bay (female half of the joint)
-    tris += outer_lap_plate(0.0)
+    The nose sits above the height a can reaches while being loaded, so the
+    front of the rack stays open.
+    """
+    tris = outer_lap_plate(0.0, bands=[BAND_HIGH])
 
-    # Nose — the part in front of the glass edge, joins rail to flange
-    tris += box(CLIP_RISER_X0, CLIP_RISER_X1, -CLIP_NOSE, 0.0,
-                Z_FLOOR, Z_GLASS_TOP + CLIP_T)
-    tris += box(CLIP_FLANGE_X0, CLIP_RISER_X0, -CLIP_NOSE, 0.0,
-                Z_GLASS_BOT, Z_GLASS_TOP + CLIP_T)
+    # Nose — wraps around the front edge of the glass
+    tris += box(CLIP_NOSE_X0, X_OUT, -CLIP_NOSE, 0.0,
+                CLIP_NOSE_Z0, Z_GLASS_TOP + CLIP_T)
 
     # Flange lying on top of the glass
-    tris += box(CLIP_FLANGE_X0, CLIP_RISER_X1, 0.0, CLIP_FLANGE_LEN,
+    tris += box(CLIP_FLANGE_X0, X_OUT, 0.0, CLIP_FLANGE_LEN,
                 Z_GLASS_TOP, Z_GLASS_TOP + CLIP_T)
 
     return tris
 
 
 # ═══════════════════════════════════════════════════════════════════════
-#  Part 3 — rear end stop (print x1)
+#  Part 5 — rear end stop
 # ═══════════════════════════════════════════════════════════════════════
 
 def end_stop():
-    tris = []
-
     side = inner_lap_plate(0.0)
-    tris += side
-    tris += mirror_x(side)
-
-    # Stop wall across the back
-    tris += box(-X_OUT, X_OUT, LAP, LAP + STOP_T, 0.0, Z_FLOOR + STOP_H)
+    tris = side + mirror_x(side)
+    # The wall sits just inside the lap zone, clear of the bay's outer plates
+    tris += box(-X_TAB_IN, X_TAB_IN, 0.0, STOP_T, 0.0, Z_GLASS_BOT)
     return tris
 
 
@@ -262,8 +296,8 @@ def end_stop():
 # ═══════════════════════════════════════════════════════════════════════
 
 def assembly():
-    tris = []
-    for i in range(N_BAYS):
+    tris = bay_module(front=True)
+    for i in range(1, N_BAYS):
         tris += translate(bay_module(), dy=i * BAY)
 
     clip = shelf_clip()
@@ -293,27 +327,31 @@ def save(tris, filename, label, matrix=None, drop_to_zero=True):
     xr = m.x.max() - m.x.min()
     yr = m.y.max() - m.y.min()
     zr = m.z.max() - m.z.min()
-    print(f"  {label:<22} {len(tris):>5} tris   "
+    print(f"  {label:<26} {len(tris):>5} tris   "
           f"{xr:6.1f} x {yr:6.1f} x {zr:6.1f} mm  →  {filename}")
     m.save(filename)
 
 
 def main():
-    print("Generating fridge can rack …")
+    print("Generating fridge can rack (cans standing upright) …")
     print(f"  Shelf depth {SHELF_DEPTH:.0f}mm → {N_BAYS} x 330ml cans "
-          f"({RACK_LEN:.0f}mm of shelf used)\n")
+          f"({RACK_DEPTH:.0f}mm of shelf used)\n")
 
-    save(bay_module(), "fridge_can_rack_bay.stl", "Can bay (x5)")
-    save(shelf_clip(), "fridge_can_rack_shelf_clip.stl", "Shelf clip (x2)",
-         matrix=ROT_LAY_ON_SIDE)
+    save(bay_module(), "fridge_can_rack_bay.stl", "Can bay (x4)")
+    save(bay_module(front=True), "fridge_can_rack_bay_front.stl",
+         "Front can bay (x1)")
+    save(shelf_clip(), "fridge_can_rack_shelf_clip_right.stl",
+         "Shelf clip, right (x1)", matrix=ROT_ON_RIGHT_FACE)
+    save(mirror_x(shelf_clip()), "fridge_can_rack_shelf_clip_left.stl",
+         "Shelf clip, left (x1)", matrix=ROT_ON_LEFT_FACE)
     save(end_stop(), "fridge_can_rack_end_stop.stl", "End stop (x1)",
-         matrix=ROT_LAY_ON_BACK)
+         matrix=ROT_FACE_DOWN)
     save(assembly(), "fridge_can_rack_assembly.stl", "Assembly (preview)")
 
-    print(f"\n  Assembled rack: {2 * (X_OUT + 1.0):.0f}mm wide, "
-          f"{RACK_LEN + CLIP_NOSE:.0f}mm long, "
-          f"{Z_GLASS_TOP + CLIP_T:.0f}mm tall")
-    print(f"  Needs {Z_GLASS_BOT:.0f}mm of clearance under the shelf")
+    print(f"\n  Assembled rack: {2 * X_OUT:.0f}mm wide, "
+          f"{RACK_DEPTH:.0f}mm deep, {Z_GLASS_TOP + CLIP_T:.0f}mm tall")
+    print(f"  Needs {Z_GLASS_BOT:.0f}mm of clearance under the shelf "
+          f"and {CLIP_T:.0f}mm above it")
     print(f"  Set GLASS_T (currently {GLASS_T:.1f}mm) to your shelf thickness")
 
 
