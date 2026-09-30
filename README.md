@@ -12,6 +12,7 @@ A collection of 3D-printable models generated entirely by AI. Each model is crea
 | iPhone MacBook Mount | `generate_iphone_macbook_mount.py` | `iphone_macbook_mount.stl` | Clips iPhone 16 Pro (in Apple Silicone Case, landscape) onto MacBook Pro 14" screen top edge with webcam clearance (151mm wide) |
 | Egg Beater Pedal Adapter | `generate_eggbeater_adapter.py` | `eggbeater_adapter.stl` | Platform adapter for Crank Brothers Egg Beater pedals — clips in like a cleat, provides a flat 95×75mm pedal surface for normal shoes. Print twice (one per pedal). (95mm wide, 19mm tall) |
 | Bowl Stacker (JL v3 slim) | `create_bowl_stacker_v3.py` | `Bowl_stacker_JL_v3.3mf` | Slimmed bowl stacker variant targeting ~118mm width so two units fit on a 250×280mm shelf without overhang. |
+| Fridge Can Rack | `generate_fridge_can_rack.py` | `fridge_can_rack_bay.stl` + clips | Modular frame that clips onto a glass fridge shelf and hangs 5 × 330ml cans in a row front-to-back under it (380mm shelf). See [README_fridge_can_rack.md](README_fridge_can_rack.md) |
 
 ## How It Works
 
